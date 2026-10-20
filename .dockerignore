@@ -3,6 +3,11 @@
 .codex
 .codex-kit
 .agents
+.claude
+memory
+docs
+e2e
+**/src/**/*.test.ts
 local-notes
 
 node_modules

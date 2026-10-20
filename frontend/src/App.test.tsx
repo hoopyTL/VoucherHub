@@ -28,8 +28,12 @@ describe('App routing', () => {
     renderApp()
 
     const primaryNav = screen.getByRole('navigation', { name: /điều hướng chính/i })
-    expect(within(primaryNav).getByRole('link', { name: /browse/i })).toBeDefined()
-    expect(within(primaryNav).getByRole('link', { name: /home/i })).toBeDefined()
+    expect(
+      within(primaryNav)
+        .getByRole('link', { name: /Danh mục/ })
+        .getAttribute('href')
+    ).toBe('/search')
+    expect(screen.getByRole('link', { name: /VoucherHub Tiết kiệm nhiều hơn mỗi ngày/ }).getAttribute('href')).toBe('/')
   })
 
   it('renders the home page at the index route', () => {
@@ -39,7 +43,7 @@ describe('App routing', () => {
 
   it('shows login/sign up actions for unauthenticated visitors', () => {
     renderApp()
-    expect(screen.getByRole('link', { name: /log in/i })).toBeDefined()
-    expect(screen.getByRole('link', { name: /sign up/i })).toBeDefined()
+    expect(screen.getByRole('link', { name: 'Đăng nhập', exact: true })).toBeDefined()
+    expect(screen.getByRole('link', { name: 'Đăng ký', exact: true })).toBeDefined()
   })
 })

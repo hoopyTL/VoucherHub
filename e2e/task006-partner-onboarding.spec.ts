@@ -1,3 +1,4 @@
+import { startFreshLogin } from './fixtures/session'
 import { expect, test } from '@playwright/test'
 
 import { E2E_PASSWORD, e2eUsers } from './fixtures/task004'
@@ -9,8 +10,8 @@ const applicantBase = {
 }
 
 async function login(page: import('@playwright/test').Page, email: string) {
-  await page.getByLabel(/email|phone/i).fill(email)
-  await page.getByLabel(/mật khẩu|password/i).fill(E2E_PASSWORD)
+  await page.getByLabel(/^Email hoặc số điện thoại\s*\*?$/).fill(email)
+  await page.getByLabel(/^Mật khẩu\s*\*?$/).fill(E2E_PASSWORD)
   await page.getByRole('button', { name: /log in|đăng nhập/i }).click()
 }
 
@@ -30,19 +31,19 @@ test('@FLOW-005 partner registers, gets approved, then manages branches', async 
   page.on('pageerror', (error) => pageErrors.push(error.message))
 
   await page.goto('/register/partner')
-  await page.getByLabel('Email').fill(applicant.email)
-  await page.getByLabel('Password').fill(E2E_PASSWORD)
-  await page.getByLabel('Legal business name').fill(applicant.legalName)
-  await page.getByLabel('Tax code').fill(applicant.taxCode)
-  await page.getByLabel('Representative name').fill(applicant.representative)
-  await page.getByLabel('Branch name').fill(applicant.branchName)
-  await page.getByLabel('Address').fill('6 Integration Street')
-  await page.getByLabel('Region').fill('Hồ Chí Minh')
+  await page.getByLabel(/^Email\s*\*?$/).fill(applicant.email)
+  await page.getByLabel(/^Mật khẩu\s*\*?$/).fill(E2E_PASSWORD)
+  await page.getByLabel(/^Tên pháp lý doanh nghiệp\s*\*?$/).fill(applicant.legalName)
+  await page.getByLabel(/^Mã số thuế\s*\*?$/).fill(applicant.taxCode)
+  await page.getByLabel(/^Họ tên người đại diện\s*\*?$/).fill(applicant.representative)
+  await page.getByLabel(/^Tên chi nhánh\s*\*?$/).fill(applicant.branchName)
+  await page.getByLabel(/^Địa chỉ\s*\*?$/).fill('6 Integration Street')
+  await page.getByLabel(/^Khu vực\s*\*?$/).fill('Hồ Chí Minh')
 
   const registerResponse = page.waitForResponse(
     (response) => response.url().endsWith('/api/partners') && response.request().method() === 'POST'
   )
-  await page.getByRole('button', { name: 'Submit registration' }).click()
+  await page.getByRole('button', { name: 'Gửi hồ sơ đăng ký' }).click()
   const registration = await registerResponse
   expect(registration.status(), `Partner registration failed: ${await registration.text()}`).toBe(201)
   await expect(page).toHaveURL(/\/login$/)
@@ -55,6 +56,8 @@ test('@FLOW-005 partner registers, gets approved, then manages branches', async 
   await page.goto('/admin/partners')
   await expect(page).toHaveURL(/\/login$/)
   await login(page, e2eUsers.admin.email)
+  await expect(page).toHaveURL(/\/admin$/)
+  await page.getByRole('link', { name: 'Duyệt đối tác', exact: true }).click()
   await expect(page).toHaveURL(/\/admin\/partners$/)
   const applicantRow = page.getByRole('row').filter({ hasText: applicant.email })
   await expect(applicantRow).toBeVisible()
@@ -62,11 +65,11 @@ test('@FLOW-005 partner registers, gets approved, then manages branches', async 
   const approvalResponse = page.waitForResponse(
     (response) => response.url().includes('/api/admin/partners/') && response.url().endsWith('/approval')
   )
-  await applicantRow.getByRole('button', { name: `Approve ${applicant.legalName}` }).click()
+  await applicantRow.getByRole('button', { name: `Duyệt ${applicant.legalName}` }).click()
   expect((await approvalResponse).status()).toBe(200)
-  await expect(page.getByText(`${applicant.legalName} has been approved.`)).toBeVisible()
+  await expect(page.getByText(`Đã duyệt ${applicant.legalName}.`)).toBeVisible()
 
-  await page.getByRole('button', { name: /log out|đăng xuất/i }).click()
+  await startFreshLogin(page)
   await page.goto('/login')
   await login(page, applicant.email)
   await expect(page).toHaveURL(/\/partner$/)
@@ -74,21 +77,21 @@ test('@FLOW-005 partner registers, gets approved, then manages branches', async 
   await expect(page).toHaveURL(/\/partner\/branches$/)
   await expect(page.getByText(applicant.branchName)).toBeVisible()
 
-  await page.getByRole('button', { name: 'Add branch' }).click()
-  await page.getByLabel('Branch name').fill('E2E Secondary Branch')
-  await page.getByLabel('Address').fill('7 Integration Street')
-  await page.getByLabel('Region').selectOption('Đà Nẵng')
-  await page.getByRole('dialog').getByRole('button', { name: 'Add branch' }).click()
-  await expect(page.getByText('Branch added.')).toBeVisible()
+  await page.getByRole('button', { name: 'Thêm chi nhánh' }).click()
+  await page.getByLabel(/^Tên chi nhánh\s*\*?$/).fill('E2E Secondary Branch')
+  await page.getByLabel(/^Địa chỉ\s*\*?$/).fill('7 Integration Street')
+  await page.getByLabel(/^Khu vực\s*\*?$/).selectOption('Đà Nẵng')
+  await page.getByRole('dialog').getByRole('button', { name: 'Thêm chi nhánh' }).click()
+  await expect(page.getByText('Đã thêm chi nhánh.')).toBeVisible()
 
-  await page.getByRole('button', { name: 'Edit E2E Secondary Branch' }).click()
-  await page.getByLabel('Branch name').fill('E2E Secondary Branch Updated')
-  await page.getByRole('button', { name: 'Save changes' }).click()
-  await expect(page.getByText('Branch updated.')).toBeVisible()
+  await page.getByRole('button', { name: 'Chỉnh sửa E2E Secondary Branch' }).click()
+  await page.getByLabel(/^Tên chi nhánh\s*\*?$/).fill('E2E Secondary Branch Updated')
+  await page.getByRole('button', { name: 'Lưu thay đổi' }).click()
+  await expect(page.getByText('Đã cập nhật chi nhánh.')).toBeVisible()
 
-  await page.getByRole('button', { name: 'Delete E2E Secondary Branch Updated' }).click()
-  await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click()
-  await expect(page.getByText('Branch deleted.')).toBeVisible()
+  await page.getByRole('button', { name: 'Xóa E2E Secondary Branch Updated' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Xóa' }).click()
+  await expect(page.getByText('Đã xóa chi nhánh.')).toBeVisible()
   await expect(page.getByText('E2E Secondary Branch Updated')).not.toBeVisible()
   expect(pageErrors).toEqual([])
 })

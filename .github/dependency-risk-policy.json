@@ -1,0 +1,27 @@
+{
+  "reviewedOn": "2026-10-20",
+  "owner": "Hoopy / S0 security review",
+  "exceptions": [
+    {
+      "advisory": "https://github.com/advisories/GHSA-ggr8-5vv4-36mx",
+      "packages": { "deepmerge-ts": "7.1.5", "@prisma/config": "6.19.3", "prisma": "6.19.3" },
+      "expires": "2026-11-03",
+      "reason": "Prisma 6 configuration CLI path; requires a cyclic object graph. Application does not import deepmerge/config APIs or accept untrusted Prisma config. Package may still be installed through peer dependencies; this is an execution-reachability disposition, not an absence claim. Prisma 7 upgrade requires its own compatibility migration.",
+      "invalidateOn": "Untrusted configuration, dynamic Prisma config execution in the API, direct deepmerge imports, changed versions or a new advisory."
+    },
+    {
+      "advisory": "https://github.com/advisories/GHSA-337j-9hxr-rhxg",
+      "packages": { "react-router": "6.30.6", "react-router-dom": "6.30.6" },
+      "expires": "2026-11-03",
+      "reason": "Current app uses createRoot + BrowserRouter in declarative SPA mode, not SSR hydration. The advisory excludes declarative mode. Compatible 6.30.6 update applied; major 7 migration is separate.",
+      "invalidateOn": "SSR/hydrateRoot/data-router introduction, changed versions or a new advisory."
+    },
+    {
+      "advisory": "https://github.com/advisories/GHSA-wrjc-x8rr-h8h6",
+      "packages": { "react-router": "6.30.6", "react-router-dom": "6.30.6" },
+      "expires": "2026-11-03",
+      "reason": "Conditional navigation risk remains in router 6. Supported return-location producer is internal ProtectedRoute state; no external returnUrl is currently accepted. Not a universal safety claim. Keep external navigation disabled and review a router 7 migration separately.",
+      "invalidateOn": "External returnUrl/deep-link destination input, untrusted location state, changed versions or a new advisory."
+    }
+  ]
+}

@@ -32,16 +32,16 @@ function renderLogin(initialEntry: { pathname: string; state?: unknown } = { pat
 
 /** Fills the credential fields with the given values. */
 function fillCredentials(emailOrPhone: string, password: string) {
-  fireEvent.change(screen.getByLabelText(/email or phone/i), {
+  fireEvent.change(screen.getByLabelText(/^Email hoặc số điện thoại/), {
     target: { value: emailOrPhone }
   })
-  fireEvent.change(screen.getByLabelText(/password/i), {
+  fireEvent.change(screen.getByLabelText(/^Mật khẩu/), {
     target: { value: password }
   })
 }
 
 function submit() {
-  fireEvent.click(screen.getByRole('button', { name: /log in/i }))
+  fireEvent.click(screen.getByRole('button', { name: 'Đăng nhập' }))
 }
 
 describe('LoginPage', () => {
@@ -56,9 +56,9 @@ describe('LoginPage', () => {
 
   it('renders email/phone and password fields plus a submit button', () => {
     renderLogin()
-    expect(screen.getByLabelText(/email or phone/i)).toBeDefined()
-    expect(screen.getByLabelText(/password/i)).toBeDefined()
-    expect(screen.getByRole('button', { name: /log in/i })).toBeDefined()
+    expect(screen.getByLabelText(/^Email hoặc số điện thoại/)).toBeDefined()
+    expect(screen.getByLabelText(/^Mật khẩu/)).toBeDefined()
+    expect(screen.getByRole('button', { name: 'Đăng nhập' })).toBeDefined()
   })
 
   it('authenticates, stores the token, and redirects by role', async () => {

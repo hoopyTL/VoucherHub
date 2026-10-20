@@ -67,6 +67,7 @@ describe('Cart Controller & Routes', () => {
             quantity: 1,
             salePrice: '100',
             voucherProductName: 'abc',
+            imageUrl: null,
             itemTotal: '100'
           }
         ],

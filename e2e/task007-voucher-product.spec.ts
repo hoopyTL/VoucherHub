@@ -1,3 +1,4 @@
+import { startFreshLogin } from './fixtures/session'
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test'
 
 import { E2E_PASSWORD, e2eUsers } from './fixtures/task004'
@@ -9,8 +10,8 @@ test.setTimeout(60_000)
 
 async function login(page: Page, email: string) {
   await page.goto('/login')
-  await page.getByLabel(/email|phone/i).fill(email)
-  await page.getByLabel(/mật khẩu|password/i).fill(E2E_PASSWORD)
+  await page.getByLabel(/^Email hoặc số điện thoại\s*\*?$/).fill(email)
+  await page.getByLabel(/^Mật khẩu\s*\*?$/).fill(E2E_PASSWORD)
   await page.getByRole('button', { name: /log in|đăng nhập/i }).click()
 }
 
@@ -37,8 +38,8 @@ test('@FLOW-006 partner creates a voucher, admin approves and publishes it, then
 
   await login(page, e2eUsers.partner.email)
   await expect(page).toHaveURL(/\/partner$/)
-  await page.getByRole('link', { name: 'Voucher', exact: true }).click()
-  await page.getByRole('link', { name: 'Tạo voucher' }).click()
+  await page.getByRole('link', { name: 'Kho voucher', exact: true }).click()
+  await page.getByRole('banner').getByRole('link', { name: 'Tạo voucher', exact: true }).click()
   await page.getByLabel('Tiêu đề').fill(voucherName)
   await page.getByLabel('Mô tả').fill('Voucher được tạo bởi kiểm thử E2E FLOW-006.')
   await page.getByLabel('Danh mục').selectOption({ label: 'E2E Ẩm thực' })
@@ -54,7 +55,7 @@ test('@FLOW-006 partner creates a voucher, admin approves and publishes it, then
   const createResponse = page.waitForResponse(
     (response) => response.url().endsWith('/api/vouchers') && response.request().method() === 'POST'
   )
-  await page.getByRole('button', { name: 'Lưu bản nháp' }).click()
+  await page.getByRole('button', { name: 'Lưu voucher', exact: true }).click()
   const created = await createResponse
   expect(created.status()).toBe(201)
   const voucherId = ((await created.json()).data.id ?? '') as string
@@ -68,16 +69,16 @@ test('@FLOW-006 partner creates a voucher, admin approves and publishes it, then
   expect((await submitResponse).status()).toBe(200)
   await expect(page.getByTestId(`voucher-row-${voucherId}`)).toContainText('Chờ duyệt')
 
-  await page.getByRole('button', { name: /log out|đăng xuất/i }).click()
+  await startFreshLogin(page)
   await login(page, e2eUsers.admin.email)
   await page.getByRole('link', { name: 'Duyệt voucher' }).click()
   await expect(page.getByText(voucherName)).toBeVisible()
   const approvalResponse = page.waitForResponse((response) =>
     response.url().endsWith(`/api/admin/vouchers/${voucherId}/approval`)
   )
-  await page.getByRole('button', { name: `Approve ${voucherName}` }).click()
+  await page.getByRole('button', { name: `Duyệt ${voucherName}` }).click()
   expect((await approvalResponse).status()).toBe(200)
-  await expect(page.getByText(new RegExp(`${voucherName}.*has been approved`, 'i'))).toBeVisible()
+  await expect(page.getByText(`Đã duyệt voucher “${voucherName}”.`, { exact: true })).toBeVisible()
 
   const adminToken = await apiLogin(request, e2eUsers.admin.email)
   const published = await request.patch(`${apiBaseUrl}/admin/vouchers/${voucherId}/status`, {
@@ -87,9 +88,9 @@ test('@FLOW-006 partner creates a voucher, admin approves and publishes it, then
   expect(published.status()).toBe(200)
   await expect(published.json()).resolves.toMatchObject({ data: { status: 'ON_SALE' } })
 
-  await page.getByRole('button', { name: /log out|đăng xuất/i }).click()
+  await startFreshLogin(page)
   await login(page, e2eUsers.partner.email)
-  await page.getByRole('link', { name: 'Voucher', exact: true }).click()
+  await page.getByRole('link', { name: 'Kho voucher', exact: true }).click()
   const row = page.getByTestId(`voucher-row-${voucherId}`)
   await expect(row).toContainText('Đang bán')
   const pauseResponse = page.waitForResponse((response) => response.url().endsWith(`/api/vouchers/${voucherId}/status`))

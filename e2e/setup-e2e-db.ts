@@ -2,22 +2,13 @@ import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 
 import { E2E_PASSWORD, e2eUsers } from './fixtures/task004'
+import { resetTestDatabase } from '../backend/src/test/reset-database'
 
 const prisma = new PrismaClient()
 
 async function resetDatabase(): Promise<void> {
-  await prisma.usageLog.deleteMany()
-  await prisma.issuedVoucherCode.deleteMany()
-  await prisma.orderItem.deleteMany()
-  await prisma.order.deleteMany()
-  await prisma.cartItem.deleteMany()
-  await prisma.cart.deleteMany()
-  await prisma.voucherProductBranch.deleteMany()
-  await prisma.voucherProduct.deleteMany()
+  await resetTestDatabase(prisma)
   await prisma.category.deleteMany()
-  await prisma.branch.deleteMany()
-  await prisma.partner.deleteMany()
-  await prisma.user.deleteMany()
 }
 
 export async function setupE2eDatabase(): Promise<void> {

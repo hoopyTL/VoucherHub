@@ -8,10 +8,12 @@ test('@FLOW-009 admin manages account status and role through the UI', async ({ 
 
   await page.goto('/admin/users')
   await expect(page).toHaveURL(/\/login$/)
-  await page.getByLabel(/email|phone/i).fill(e2eUsers.admin.email)
-  await page.getByLabel(/mật khẩu|password/i).fill(E2E_PASSWORD)
+  await page.getByLabel(/^Email hoặc số điện thoại\s*\*?$/).fill(e2eUsers.admin.email)
+  await page.getByLabel(/^Mật khẩu\s*\*?$/).fill(E2E_PASSWORD)
   await page.getByRole('button', { name: /log in|đăng nhập/i }).click()
 
+  await expect(page).toHaveURL(/\/admin$/)
+  await page.getByRole('link', { name: 'Người dùng', exact: true }).click()
   await expect(page).toHaveURL(/\/admin\/users$/)
   await expect(page.getByRole('heading', { name: 'Quản lý người dùng' })).toBeVisible()
   await page.getByLabel('Tìm kiếm tài khoản').fill(e2eUsers.lockTarget.email)

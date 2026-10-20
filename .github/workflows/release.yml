@@ -42,7 +42,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .nvmrc
           cache: npm
 
       - name: Install dependencies
@@ -55,66 +55,14 @@ jobs:
           safe_ref="$(echo "${{ github.ref_name }}" | tr '/' '-')"
           echo "value=$safe_ref" >> "$GITHUB_OUTPUT"
 
-      - name: Verify workspace test scripts
-        id: test_scripts
-        run: |
-          node <<'EOF'
-          const fs = require('fs')
-          const packages = ['package.json', 'backend/package.json', 'frontend/package.json', 'shared/package.json']
-          const withTests = packages.filter((file) => {
-            const json = JSON.parse(fs.readFileSync(file, 'utf8'))
-            return Boolean(json.scripts && json.scripts.test)
-          })
-
-          fs.appendFileSync(process.env.GITHUB_OUTPUT, `has_tests=${withTests.length > 0}\n`)
-          console.log(`Workspace test scripts: ${withTests.length ? withTests.join(', ') : 'none'}`)
-          EOF
-
-      - name: Prisma generate
-        run: |
-          if [ -f backend/prisma/schema.prisma ]; then
-            npm run db:generate
-          else
-            echo "schema.prisma chưa tồn tại — bỏ qua prisma generate."
-          fi
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Typecheck
-        run: npm run typecheck
-
-      - name: Build
-        run: npm run build
-
-      - name: Apply test database migrations
-        run: npm run db:deploy --workspace=backend
-
-      - name: Typecheck tests
-        run: npm run typecheck:test --workspace=backend
-
-      - name: Test
-        if: steps.test_scripts.outputs.has_tests == 'true'
-        run: npm run test:coverage --workspace=backend
-
-      - name: Frontend tests
-        if: steps.test_scripts.outputs.has_tests == 'true'
-        run: npm run test --workspace=frontend
-
       - name: Install Playwright Chromium
         run: ./node_modules/.bin/playwright install --with-deps chromium
 
-      - name: Typecheck E2E
-        run: npm run typecheck:e2e
+      - name: Canonical CI gate
+        run: npm run ci
 
-      - name: Browser E2E
-        run: npm run test:e2e
-
-      - name: Block false-green release gate
-        if: steps.test_scripts.outputs.has_tests != 'true'
-        run: |
-          echo "Release bị chặn: chưa có workspace test script nên không đủ bằng chứng để release."
-          exit 1
+      - name: Build and smoke container topology
+        run: npm run smoke:containers
 
       - name: Package release bundle
         run: |

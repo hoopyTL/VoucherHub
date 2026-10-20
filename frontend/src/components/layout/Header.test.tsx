@@ -56,22 +56,22 @@ describe('Header navigation', () => {
   it('shows Log in / Sign up and hides customer links for an unauthenticated visitor', () => {
     renderHeader(makeAuth({ isAuthenticated: false }))
 
-    expect(screen.getByText('Home')).toBeDefined()
-    expect(screen.getByText('Browse')).toBeDefined()
-    expect(screen.getByText(/log in/i)).toBeDefined()
-    expect(screen.getByText(/sign up/i)).toBeDefined()
+    expect(screen.getByRole('link', { name: /VoucherHub Tiết kiệm nhiều hơn mỗi ngày/ }).getAttribute('href')).toBe('/')
+    expect(screen.getByRole('link', { name: /Danh mục/ }).getAttribute('href')).toBe('/search')
+    expect(screen.getByRole('link', { name: 'Đăng nhập', exact: true })).toBeDefined()
+    expect(screen.getByRole('link', { name: 'Đăng ký', exact: true })).toBeDefined()
 
     // Customer-only destinations must not be present.
-    expect(screen.queryByText('Cart')).toBeNull()
-    expect(screen.queryByText('Orders')).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Mở giỏ hàng' })).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Voucher của tôi' })).toBeNull()
   })
 
   it('does not leak customer links while a profile is present but the session is not yet authenticated', () => {
     // Mid-restore state: user populated from persisted profile, isAuthenticated false.
     renderHeader(makeAuth({ user: customer, isAuthenticated: false }))
 
-    expect(screen.queryByText('Cart')).toBeNull()
-    expect(screen.queryByText('Orders')).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Mở giỏ hàng' })).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Voucher của tôi' })).toBeNull()
   })
 
   it('shows customer links once authenticated', () => {
@@ -82,6 +82,6 @@ describe('Header navigation', () => {
     expect(screen.queryByText('Orders')).toBeNull()
     expect(screen.queryByText('My Codes')).toBeNull()
     // No guest CTAs when signed in.
-    expect(screen.queryByText(/sign up/i)).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Đăng ký', exact: true })).toBeNull()
   })
 })

@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from 'express'
 
 import { AppError } from '~/utils/app-error'
 import { ErrorCode } from '~/utils/error-codes'
+import { HttpError } from '~/errors/http-error'
 
 export class NotFoundError extends AppError {
   constructor(message = 'Không tìm thấy dữ liệu') {
@@ -50,6 +51,22 @@ interface ErrorResponseBody {
 
 export function errorHandler(err: Error, _req: Request, res: Response, _next: NextFunction): void {
   void _next
+  if (err instanceof HttpError && [400, 404, 409].includes(err.statusCode)) {
+    const codes: Record<number, string> = {
+      400: ErrorCode.BAD_REQUEST,
+      404: ErrorCode.RESOURCE_NOT_FOUND,
+      409: ErrorCode.CONFLICT
+    }
+    res.status(err.statusCode).json({
+      success: false,
+      error: {
+        code: codes[err.statusCode],
+        message: err.message,
+        ...(err.details !== undefined && { details: err.details })
+      }
+    })
+    return
+  }
   // 1. AppError
   if (err instanceof AppError) {
     const isServerError = err.statusCode >= 500
@@ -61,7 +78,9 @@ export function errorHandler(err: Error, _req: Request, res: Response, _next: Ne
         ...(!isServerError && err.details !== undefined && { details: err.details })
       }
     }
-    if (isServerError && process.env.NODE_ENV !== 'test') console.error('Server error:', err)
+    if (isServerError && process.env.NODE_ENV !== 'test') {
+      console.error(JSON.stringify({ event: 'server_error', code: err.code, requestId: res.locals.requestId }))
+    }
     res.status(err.statusCode).json(body)
     return
   }
@@ -132,7 +151,11 @@ export function errorHandler(err: Error, _req: Request, res: Response, _next: Ne
   }
 
   // 5. Unknown / unhandled — log + generic response
-  if (process.env.NODE_ENV !== 'test') console.error('Unhandled error:', err)
+  if (process.env.NODE_ENV !== 'test') {
+    console.error(
+      JSON.stringify({ event: 'unhandled_error', code: ErrorCode.INTERNAL_ERROR, requestId: res.locals.requestId })
+    )
+  }
 
   const body: ErrorResponseBody = {
     success: false,

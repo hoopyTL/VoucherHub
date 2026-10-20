@@ -12,7 +12,7 @@ import prisma from '../../configs/prisma'
 export const startOrderCleanupCron = () => {
   const ONE_MINUTE = 60 * 1000
 
-  setInterval(async () => {
+  const timer = setInterval(async () => {
     try {
       const now = new Date()
 
@@ -123,4 +123,5 @@ export const startOrderCleanupCron = () => {
   }, ONE_MINUTE)
 
   console.log('[OrderCron] Order cleanup cron job started (interval: 1 min).')
+  return () => clearInterval(timer)
 }

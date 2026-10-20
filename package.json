@@ -9,6 +9,13 @@
     "frontend"
   ],
   "scripts": {
+    "ci": "node scripts/ci.mjs",
+    "test:tooling": "node --test scripts/*.test.mjs",
+    "verify:config": "node scripts/verify-config.mjs",
+    "smoke:runtime": "node scripts/smoke-runtime.mjs",
+    "smoke:containers": "node scripts/smoke-containers.mjs",
+    "db:prepare:test": "tsx scripts/prepare-test-database.ts",
+    "audit:policy": "node scripts/audit-policy.mjs",
     "dev": "node scripts/dev.mjs",
     "build": "npm run build --workspace=shared && npm run build --workspace=backend && npm run build --workspace=frontend",
     "typecheck": "npm run typecheck --workspaces --if-present",
@@ -17,6 +24,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "npm run test --workspaces --if-present",
+    "typecheck:e2e": "tsc --noEmit -p e2e/tsconfig.json",
     "test:e2e": "playwright test --config=e2e/playwright.config.ts",
     "tv4:verify": "node scripts/verify-tv4.mjs",
     "db:migrate": "npm run db:migrate --workspace=backend",
