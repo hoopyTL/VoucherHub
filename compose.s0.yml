@@ -1,0 +1,33 @@
+# Isolated local/CI smoke topology, synthetic credentials; not a public deployment.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: smoke
+      POSTGRES_PASSWORD: local-smoke-only
+      POSTGRES_DB: voucherhub_test
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U smoke -d voucherhub_test']
+      interval: 2s
+      timeout: 2s
+      retries: 30
+  server:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgresql://smoke:local-smoke-only@db:5432/voucherhub_test
+      JWT_SECRET: local-smoke-jwt-minimum-32-characters-only
+      JWT_REFRESH_SECRET: local-smoke-refresh-minimum-32-characters-only
+    depends_on:
+      db:
+        condition: service_healthy
+    ports: ['127.0.0.1::4000']
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    depends_on: [server]
+    ports: ['127.0.0.1::8080']

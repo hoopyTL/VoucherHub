@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import request from 'supertest'
 import app from '~/app'
+import prisma from '~/configs/prisma'
+import { vi } from 'vitest'
 
 describe('GET /health', () => {
   it('returns 200 with success shape', async () => {
@@ -11,6 +13,28 @@ describe('GET /health', () => {
       success: true,
       data: { status: 'ok' }
     })
+  })
+})
+
+describe('GET /ready', () => {
+  it('reports ready only after the real test database answers', async () => {
+    const res = await request(app).get('/ready')
+    expect(res.status).toBe(200)
+    expect(res.body).toEqual({ success: true, data: { status: 'ready' } })
+    expect(res.headers['x-request-id']).toBeTruthy()
+  })
+
+  it('fails readiness without exposing database errors while liveness stays up', async () => {
+    const query = vi.spyOn(prisma, '$queryRaw').mockRejectedValueOnce(new Error('private-database-password'))
+    try {
+      const res = await request(app).get('/ready')
+      expect(res.status).toBe(503)
+      expect(res.body.error.code).toBe('NOT_READY')
+      expect(JSON.stringify(res.body)).not.toContain('private-database-password')
+      expect((await request(app).get('/health')).status).toBe(200)
+    } finally {
+      query.mockRestore()
+    }
   })
 })
 
