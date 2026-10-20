@@ -27,6 +27,7 @@ node-v*-win-x64/
 node-v*-win-x64.zip
 
 # Build output
+artifacts/
 dist/
 build/
 output/
