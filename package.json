@@ -23,7 +23,9 @@
     "db:generate": "npm run db:generate --workspace=backend",
     "db:seed": "npm run db:seed --workspace=backend",
     "db:seed:full": "npm run db:seed:full --workspace=backend",
-    "prepare": "husky"
+    "prepare": "husky",
+    "audit:policy": "node scripts/audit-policy.mjs",
+    "test:tooling": "node --test scripts/*.test.mjs"
   },
   "lint-staged": {
     "**/*.{js,ts,tsx}": [
