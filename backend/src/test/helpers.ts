@@ -2,6 +2,7 @@ import { RoleName, type RoleName as RoleNameValue } from '@voucher/shared'
 import prisma from '~/configs/prisma'
 import { signAccessToken } from '~/utils/jwt'
 import { hashPassword } from '~/utils/password'
+import { resetTestDatabase } from './reset-database'
 
 export const TEST_PASSWORD = 'ValidPassword123!'
 
@@ -12,23 +13,7 @@ export async function seedRoles(): Promise<void> {
 }
 
 export async function resetUsers(): Promise<void> {
-  await prisma.review.deleteMany()
-  await prisma.auditLog.deleteMany()
-  await prisma.contentItem.deleteMany()
-  await prisma.usageLog.deleteMany()
-  await prisma.partnerStaffBranch.deleteMany()
-  await prisma.partnerStaff.deleteMany()
-  await prisma.issuedVoucherCode.deleteMany()
-  await prisma.orderItem.deleteMany()
-  await prisma.order.deleteMany()
-  await prisma.cartItem.deleteMany()
-  await prisma.cart.deleteMany()
-  await prisma.voucherProductBranch.deleteMany()
-  await prisma.voucherProduct.deleteMany()
-  await prisma.branch.deleteMany()
-  await prisma.partner.deleteMany()
-  await prisma.user.deleteMany()
-  // Keep role rows intact for tests — `seedRoles` seeds them as needed.
+  await resetTestDatabase(prisma)
 }
 
 interface CreateUserOptions {
