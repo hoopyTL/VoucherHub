@@ -2,8 +2,7 @@
 // Cleans up the rendered DOM between tests to avoid cross-test leakage.
 import { afterEach, beforeAll, beforeEach } from 'vitest'
 import { cleanup } from '@testing-library/react'
-// Initialise i18n so components using useTranslation() render in tests
-// (English bundle / fallback). Importing for the side effect is enough.
+// Use the shipped Vietnamese bundle consistently across this suite.
 import i18n from './i18n'
 
 const originalWarn = console.warn.bind(console)
@@ -16,7 +15,7 @@ beforeEach(() => {
 })
 
 beforeAll(async () => {
-  await i18n.changeLanguage('en')
+  await i18n.changeLanguage('vi')
 })
 
 afterEach(() => {

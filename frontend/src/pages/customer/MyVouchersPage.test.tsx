@@ -5,8 +5,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { MyVoucher } from '../../types/customer'
 import { api } from '../../services/api'
 import { MyVouchersPage } from './MyVouchersPage'
+import { AuthProvider } from '../../store/AuthContext'
 
-vi.mock('../../services/api', () => ({ api: { get: vi.fn() } }))
+vi.mock('../../services/api', async (loadOriginal) => {
+  const original = await loadOriginal<typeof import('../../services/api')>()
+  return { ...original, api: { ...original.api, get: vi.fn() } }
+})
 
 const baseVoucher: MyVoucher = {
   id: 'code-1',
@@ -45,7 +49,9 @@ function renderPage() {
   return render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter>
-        <MyVouchersPage />
+        <AuthProvider>
+          <MyVouchersPage />
+        </AuthProvider>
       </MemoryRouter>
     </QueryClientProvider>
   )
